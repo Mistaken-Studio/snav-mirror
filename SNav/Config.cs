@@ -4,7 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using Mistaken.API;
+using System.ComponentModel;
+using Mistaken.Updater.Config;
 
 namespace Mistaken.SNav
 {
@@ -12,26 +13,22 @@ namespace Mistaken.SNav
     public class Config : IAutoUpdatableConfig
     {
         /// <inheritdoc/>
+        public bool IsEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether debugs should be displayed.
+        /// </summary>
+        [Description("If true then debugs will be displayed")]
         public bool VerbouseOutput { get; set; }
 
         /// <inheritdoc/>
-        public string AutoUpdateUrl { get; set; }
-
-        /// <inheritdoc/>
-        public AutoUpdateType AutoUpdateType { get; set; }
-
-        /// <inheritdoc/>
-        public string AutoUpdateLogin { get; set; }
-
-        /// <inheritdoc/>
-        public string AutoUpdateToken { get; set; }
-
-        /// <inheritdoc/>
-        public bool IsEnabled { get; set; } = true;
+        [Description("Auto Update Settings")]
+        public System.Collections.Generic.Dictionary<string, string> AutoUpdateConfig { get; set; }
 
         /// <summary>
         /// Gets or sets SNav 3000 Spawns.
         /// </summary>
+        [Description("Spawn points for SNav 3000 (Room, OffsetX, OffsetY, OffsetZ)")]
         public string[] SNav3000Spawns { get; set; } = new string[]
         {
             "Scp079Second, 4, 2, 8.4",
@@ -45,6 +42,7 @@ namespace Mistaken.SNav
         /// <summary>
         /// Gets or sets SNav Ultimate Spawns.
         /// </summary>
+        [Description("Spawn points for SNav Ultimate (Room, OffsetX, OffsetY, OffsetZ)")]
         public string[] SNavUltimateSpawns { get; set; } = new string[]
         {
             "Scp079Second, 4.5, 2, 8.4",
