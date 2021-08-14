@@ -23,7 +23,13 @@ namespace Mistaken.SNav
 
         /// <inheritdoc/>
         [Description("Auto Update Settings")]
-        public System.Collections.Generic.Dictionary<string, string> AutoUpdateConfig { get; set; }
+        public System.Collections.Generic.Dictionary<string, string> AutoUpdateConfig { get; set; } = new System.Collections.Generic.Dictionary<string, string>
+        {
+            { "Url", "https://git.mistaken.pl/api/v4/projects/15" },
+            { "Token", string.Empty },
+            { "Type", "GITLAB" },
+            { "VerbouseOutput", "false" },
+        };
 
         /// <summary>
         /// Gets or sets SNav 3000 Spawns.
