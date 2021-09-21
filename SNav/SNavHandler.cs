@@ -10,11 +10,14 @@ using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
+using Exiled.CustomItems.API.EventArgs;
+using Exiled.CustomItems.API.Features;
+using Exiled.CustomItems.API.Spawn;
 using MEC;
 using Mistaken.API;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.GUI;
-using Mistaken.CustomItems;
 using Scp914;
 using UnityEngine;
 
@@ -411,40 +414,6 @@ namespace Mistaken.SNav
         public static Room[,] EZ_HCZRooms { get; private set; } = new Room[0, 0];
 
         /// <summary>
-        /// Spawns SNAV.
-        /// </summary>
-        /// <param name="ultimate">If SNav should be ultimate.</param>
-        /// <param name="pos">Where SNav should be spawned.</param>
-        /// <returns>Spawned SNav.</returns>
-        public static Pickup SpawnSNAV(bool ultimate, Vector3 pos)
-        {
-            if (ultimate)
-            {
-                return MapPlus.Spawn(
-                    new Inventory.SyncItemInfo
-                    {
-                        durability = 401000f,
-                        id = ItemType.WeaponManagerTablet,
-                    },
-                    pos,
-                    Quaternion.identity,
-                    new Vector3(2.5f, .75f, .75f));
-            }
-            else
-            {
-                return MapPlus.Spawn(
-                    new Inventory.SyncItemInfo
-                    {
-                        durability = 301000f,
-                        id = ItemType.WeaponManagerTablet,
-                    },
-                    pos,
-                    Quaternion.identity,
-                    new Vector3(2.0f, .50f, .50f));
-            }
-        }
-
-        /// <summary>
         /// Generates Surface map.
         /// </summary>
         /// <param name="ultimate">If <see langword="true"/> then map will contain SNavUltimate elements.</param>
@@ -545,15 +514,6 @@ namespace Mistaken.SNav
                             color = "red";
                     }
 
-                    if (Generator079.Generators.Any(g => g.CurRoom == room.Name && g.NetworkremainingPowerup > 0f))
-                    {
-                        var gen = Generator079.Generators.Find(g => g.CurRoom == room.Name);
-                        if (gen.NetworkisTabletConnected)
-                            color = "yellow";
-                        else
-                            color = "blue";
-                    }
-
                     if (ultimate)
                     {
                         if (LastScan.Contains(room) && currentRoom != room)
@@ -643,15 +603,6 @@ namespace Mistaken.SNav
                     {
                         if (room.Type == RoomType.LczChkpA || room.Type == RoomType.LczChkpB)
                             color = "red";
-                    }
-
-                    if (Generator079.Generators.Any(g => g.CurRoom == room.Name && g.NetworkremainingPowerup > 0f))
-                    {
-                        var gen = Generator079.Generators.Find(g => g.CurRoom == room.Name);
-                        if (gen.NetworkisTabletConnected)
-                            color = "yellow";
-                        else
-                            color = "blue";
                     }
 
                     if (ultimate)
@@ -1093,9 +1044,6 @@ namespace Mistaken.SNav
         {
             Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Handle(() => this.Server_WaitingForPlayers(), "WaitingForPlayers");
             Exiled.Events.Handlers.Server.RoundStarted -= this.Handle(() => this.Server_RoundStarted(), "RoundStart");
-            Exiled.Events.Handlers.Player.InsertingGeneratorTablet -= this.Handle<Exiled.Events.EventArgs.InsertingGeneratorTabletEventArgs>((ev) => this.Player_InsertingGeneratorTablet(ev));
-            Exiled.Events.Handlers.Player.ActivatingWorkstation -= this.Handle<Exiled.Events.EventArgs.ActivatingWorkstationEventArgs>((ev) => this.Player_ActivatingWorkstation(ev));
-            Exiled.Events.Handlers.Player.DeactivatingWorkstation -= this.Handle<Exiled.Events.EventArgs.DeactivatingWorkstationEventArgs>((ev) => this.Player_DeactivatingWorkstation(ev));
         }
 
         /// <inheritdoc/>
@@ -1103,46 +1051,47 @@ namespace Mistaken.SNav
         {
             Exiled.Events.Handlers.Server.WaitingForPlayers += this.Handle(() => this.Server_WaitingForPlayers(), "WaitingForPlayers");
             Exiled.Events.Handlers.Server.RoundStarted += this.Handle(() => this.Server_RoundStarted(), "RoundStart");
-            Exiled.Events.Handlers.Player.InsertingGeneratorTablet += this.Handle<Exiled.Events.EventArgs.InsertingGeneratorTabletEventArgs>((ev) => this.Player_InsertingGeneratorTablet(ev));
-            Exiled.Events.Handlers.Player.ActivatingWorkstation += this.Handle<Exiled.Events.EventArgs.ActivatingWorkstationEventArgs>((ev) => this.Player_ActivatingWorkstation(ev));
-            Exiled.Events.Handlers.Player.DeactivatingWorkstation += this.Handle<Exiled.Events.EventArgs.DeactivatingWorkstationEventArgs>((ev) => this.Player_DeactivatingWorkstation(ev));
         }
 
         /// <inheritdoc/>
-        public class SNavClasicItem : CustomItem
+        public class SNavClasicItem : Exiled.CustomItems.API.Features.CustomItem
         {
-            /// <inheritdoc cref="CustomItem.CustomItem"/>
-            public SNavClasicItem() => this.Register();
+            /// <inheritdoc/>
+            public override ItemType Type { get; set; } = ItemType.Radio;
 
             /// <inheritdoc/>
-            public override string ItemName => "SNav-3000";
+            public override uint Id { get; set; } = 3000;
 
             /// <inheritdoc/>
-            public override ItemType Item => ItemType.WeaponManagerTablet;
+            public override string Name { get; set; } = "SNav-3000";
 
             /// <inheritdoc/>
-            public override SessionVarType SessionVarType => SessionVarType.CI_SNAV;
+            public override string Description { get; set; }
 
             /// <inheritdoc/>
-            public override int Durability => 301;
+            public override float Weight { get; set; } = 0.4f;
 
             /// <inheritdoc/>
-            public override Vector3 Size => new Vector3(2.0f, .50f, .50f);
+            public override SpawnProperties SpawnProperties { get; set; }
 
             /// <inheritdoc/>
-            public override Upgrade[] Upgrades => new Upgrade[]
+            public override Pickup Spawn(Vector3 position)
             {
-                new Upgrade
-                {
-                    Input = ItemType.WeaponManagerTablet,
-                    Durability = 0,
-                    Chance = 100,
-                    KnobSetting = Scp914Knob.OneToOne,
-                },
-            };
+                var pickup = base.Spawn(position);
+                pickup.Scale = new Vector3(2.0f, .50f, .50f);
+                return pickup;
+            }
 
             /// <inheritdoc/>
-            public override void OnStartHolding(Player player, Inventory.SyncItemInfo item)
+            public override Pickup Spawn(Vector3 position, Item item)
+            {
+                var pickup = base.Spawn(position, item);
+                pickup.Scale = new Vector3(2.0f, .50f, .50f);
+                return pickup;
+            }
+
+            /// <inheritdoc/>
+            protected override void ShowSelectedMessage(Player player)
             {
                 PseudoGUIHandler.Ignore(player);
                 RequireUpdate.Add(player);
@@ -1151,62 +1100,64 @@ namespace Mistaken.SNav
             }
 
             /// <inheritdoc/>
-            public override void OnStopHolding(Player player, Inventory.SyncItemInfo item)
+            protected override void OnUpgrading(UpgradingEventArgs ev)
             {
-                player.ShowHint(string.Empty, 1); // Clear Hints
-                PseudoGUIHandler.StopIgnore(player);
-                UpdateVisibility(player, true);
-            }
-
-            /// <inheritdoc/>
-            public override Pickup OnUpgrade(Pickup pickup, Scp914Knob setting)
-            {
-                if (setting == Scp914Knob.Fine || setting == Scp914Knob.VeryFine)
-                    pickup.durability = 401000f;
-                return pickup;
+                if (!ev.IsAllowed)
+                    return;
+                if (ev.KnobSetting == Scp914KnobSetting.Fine || ev.KnobSetting == Scp914KnobSetting.VeryFine)
+                {
+                    ev.Item.DestroySelf();
+                    CustomItem.Get(4000).Spawn(ev.OutputPosition);
+                }
             }
         }
 
         /// <inheritdoc/>
         public class SNavUltimateItem : CustomItem
         {
-            /// <inheritdoc cref="CustomItem.CustomItem"/>
-            public SNavUltimateItem() => this.Register();
+            /// <inheritdoc/>
+            public override ItemType Type { get; set; } = ItemType.Radio;
 
             /// <inheritdoc/>
-            public override string ItemName => "SNav-Ultimate";
+            public override uint Id { get; set; } = 4000;
 
             /// <inheritdoc/>
-            public override ItemType Item => ItemType.WeaponManagerTablet;
+            public override string Name { get; set; } = "SNav-Ultimate";
 
             /// <inheritdoc/>
-            public override SessionVarType SessionVarType => SessionVarType.CI_SNAV;
+            public override string Description { get; set; }
 
             /// <inheritdoc/>
-            public override int Durability => 401;
+            public override float Weight { get; set; } = 0.6f;
 
             /// <inheritdoc/>
-            public override Vector3 Size => new Vector3(2.5f, .75f, .75f);
+            public override SpawnProperties SpawnProperties { get; set; }
 
             /// <inheritdoc/>
-            public override void OnStartHolding(Player player, Inventory.SyncItemInfo item)
+            public override Pickup Spawn(Vector3 position)
+            {
+                var pickup = base.Spawn(position);
+                pickup.Scale = new Vector3(2.5f, .75f, .75f);
+                return pickup;
+            }
+
+            /// <inheritdoc/>
+            public override Pickup Spawn(Vector3 position, Item item)
+            {
+                var pickup = base.Spawn(position, item);
+                pickup.Scale = new Vector3(2.5f, .75f, .75f);
+                return pickup;
+            }
+
+            /// <inheritdoc/>
+            protected override void ShowSelectedMessage(Player player)
             {
                 PseudoGUIHandler.Ignore(player);
                 RequireUpdate.Add(player);
                 UpdateInterface(player);
                 Instance.RunCoroutine(IUpdateInterface(player), "SNav.IUpdateInterface");
             }
-
-            /// <inheritdoc/>
-            public override void OnStopHolding(Player player, Inventory.SyncItemInfo item)
-            {
-                player.ShowHint(string.Empty, 1); // Clear Hints
-                PseudoGUIHandler.StopIgnore(player);
-                UpdateVisibility(player, true);
-            }
         }
-
-        private static readonly Dictionary<WorkStation, Inventory.SyncItemInfo> Workstations = new Dictionary<WorkStation, Inventory.SyncItemInfo>();
 
         private static readonly HashSet<Player> RequireUpdate = new HashSet<Player>();
         private static readonly Dictionary<Player, Room> LastRooms = new Dictionary<Player, Room>();
@@ -1228,33 +1179,13 @@ namespace Mistaken.SNav
 
         private static SNavHandler Instance { get; set; }
 
-        private static void UpdateVisibility(Player p, bool visible)
-        {
-            if (!HideTablet)
-                return;
-            var old = p.ReferenceHub.transform.localScale;
-            p.ReferenceHub.transform.localScale = new Vector3(visible ? p.ReferenceHub.transform.localScale.x : 0, p.ReferenceHub.transform.localScale.y, p.ReferenceHub.transform.localScale.z);
-            var sendSpawnMessage = Server.SendSpawnMessage;
-            if (sendSpawnMessage != null)
-            {
-                sendSpawnMessage.Invoke(
-                    null,
-                    new object[]
-                    {
-                        p.ReferenceHub.characterClassManager.netIdentity,
-                        p.Connection,
-                    });
-            }
-
-            p.ReferenceHub.transform.localScale = old;
-        }
-
         private static IEnumerator<float> IUpdateInterface(Player player)
         {
-            yield return Timing.WaitForSeconds(0.5f);
             int i = 1;
-            UpdateVisibility(player, false);
-            while (player.CurrentItem.id == ItemType.WeaponManagerTablet)
+            var clasic = CustomItem.Get(3000);
+            var utlimate = CustomItem.Get(4000);
+            yield return Timing.WaitForSeconds(0.1f);
+            while (clasic.Check(player.CurrentItem) || utlimate.Check(player.CurrentItem))
             {
                 if (!LastRooms.TryGetValue(player, out Room lastRoom) || lastRoom != player.CurrentRoom)
                 {
@@ -1263,7 +1194,7 @@ namespace Mistaken.SNav
                     i = 20;
                 }
 
-                if (i >= 19 || RequireUpdate.Contains(player) || (requireUpdateUltimate && player.CurrentItem.durability == 401000f))
+                if (i >= 19 || RequireUpdate.Contains(player) || (requireUpdateUltimate && utlimate.Check(player.CurrentItem)))
                 {
                     UpdateInterface(player);
                     RequireUpdate.Remove(player);
@@ -1275,15 +1206,18 @@ namespace Mistaken.SNav
                 yield return Timing.WaitForSeconds(0.5f);
             }
 
-            UpdateVisibility(player, true);
+            player.ShowHint(string.Empty, 1); // Clear Hints
+            PseudoGUIHandler.StopIgnore(player);
         }
 
         private static void UpdateInterface(Player player)
         {
+            var clasicItem = CustomItem.Get(3000);
+            var utlimateItem = CustomItem.Get(4000);
             bool ultimate;
-            if (player.CurrentItem.durability == 401000f)
+            if (utlimateItem.Check(player.CurrentItem))
                 ultimate = true;
-            else if (player.CurrentItem.durability == 301000f)
+            else if (clasicItem.Check(player.CurrentItem))
                 ultimate = false;
             else
                 return;
@@ -1342,48 +1276,6 @@ __|  /‾‾‾‾|   '  |
             NorthwoodLib.Pools.ListPool<string>.Shared.Return(list);
         }
 
-        private void Player_ActivatingWorkstation(Exiled.Events.EventArgs.ActivatingWorkstationEventArgs ev)
-        {
-            if (!ev.IsAllowed)
-                return;
-            var first = ev.Player.Items.FirstOrDefault(i => i.id == ItemType.WeaponManagerTablet);
-            if (first.durability >= 301000f)
-            {
-                Workstations[ev.Workstation] = first;
-                ev.Player.ShowHint(string.Empty, 1); // Clear Hints
-                PseudoGUIHandler.StopIgnore(ev.Player);
-                UpdateVisibility(ev.Player, true);
-            }
-        }
-
-        private void Player_DeactivatingWorkstation(Exiled.Events.EventArgs.DeactivatingWorkstationEventArgs ev)
-        {
-            if (!ev.IsAllowed)
-                return;
-            if (Workstations.TryGetValue(ev.Workstation, out var snav))
-            {
-                ev.Player.AddItem(snav);
-                Workstations.Remove(ev.Workstation);
-                ev.IsAllowed = false;
-                ev.Workstation.NetworkisTabletConnected = false;
-                ev.Workstation.Network_playerConnected = null;
-            }
-        }
-
-        private void Player_InsertingGeneratorTablet(Exiled.Events.EventArgs.InsertingGeneratorTabletEventArgs ev)
-        {
-            if (!ev.IsAllowed)
-                return;
-            var first = ev.Player.Inventory.items.FirstOrDefault(i => i.id == ItemType.WeaponManagerTablet);
-            if (first.durability >= 301000f)
-            {
-                GeneratorPatch.Generators[ev.Generator] = first;
-                ev.Player.ShowHint(string.Empty, 1); // Clear Hints
-                PseudoGUIHandler.StopIgnore(ev.Player);
-                UpdateVisibility(ev.Player, true);
-            }
-        }
-
         private void Server_RoundStarted()
         {
             this.RunCoroutine(this.DoRoundLoop(), "DoRoundLoop");
@@ -1391,8 +1283,6 @@ __|  /‾‾‾‾|   '  |
 
         private IEnumerator<float> DoRoundLoop()
         {
-            var initOne = SpawnSNAV(true, Vector3.zero);
-            this.CallDelayed(5, () => initOne.Delete(), "Remove SNav");
             yield return Timing.WaitForSeconds(1);
             foreach (var item in PluginHandler.Instance.Config.SNavUltimateSpawns)
             {
@@ -1403,14 +1293,14 @@ __|  /‾‾‾‾|   '  |
                     continue;
                 }
 
-                var door = Map.Doors.FirstOrDefault(i => i.Type().ToString() == data[0]);
+                var door = Map.Doors.FirstOrDefault(i => i.Type.ToString() == data[0]);
                 if (door == null)
                 {
                     Log.Warn("Invalid Data, Unknown Door \"data[0]\"");
                     continue;
                 }
 
-                SpawnSNAV(true, door.transform.position + (door.transform.forward * x) + (door.transform.right * z) + (Vector3.up * y));
+                CustomItem.TrySpawn(4000, door.Base.transform.position + (door.Base.transform.forward * x) + (door.Base.transform.right * z) + (Vector3.up * y), out _);
                 yield return Timing.WaitForSeconds(0.1f);
             }
 
@@ -1423,14 +1313,14 @@ __|  /‾‾‾‾|   '  |
                     continue;
                 }
 
-                var door = Map.Doors.FirstOrDefault(i => i.Type().ToString() == data[0]);
+                var door = Map.Doors.FirstOrDefault(i => i.Type.ToString() == data[0]);
                 if (door == null)
                 {
                     Log.Warn($"Invalid Data, Unknown Door \"{data[0]}\"");
                     continue;
                 }
 
-                SpawnSNAV(false, door.transform.position + (door.transform.forward * x) + (door.transform.right * z) + (Vector3.up * y));
+                CustomItem.TrySpawn(3000, door.Base.transform.position + (door.Base.transform.forward * x) + (door.Base.transform.right * z) + (Vector3.up * y), out _);
                 yield return Timing.WaitForSeconds(0.1f);
             }
 

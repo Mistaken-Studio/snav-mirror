@@ -35,10 +35,9 @@
   <ItemGroup>
     <Reference Include="Exiled.API" HintPath="$(MISTAKEN_REFERENCES)\Exiled.API.dll" />
     <Reference Include="Exiled.Events" HintPath="$(MISTAKEN_REFERENCES)\Exiled.Events.dll" />
-    <Reference Include="0Harmony" HintPath="$(MISTAKEN_REFERENCES)\0Harmony.dll" />
+    <Reference Include="Exiled.CustomItems" HintPath="$(MISTAKEN_REFERENCES)\Exiled.CustomItems.dll" />
     <Reference Include="Mistaken.Updater" HintPath="$(MISTAKEN_REFERENCES)\Mistaken.Updater.dll" />
     <Reference Include="0Mistaken.API" HintPath="$(MISTAKEN_REFERENCES)\0Mistaken.API.dll" />
-    <Reference Include="Mistaken.CustomItems" HintPath="$(MISTAKEN_REFERENCES)\Mistaken.CustomItems.dll" />
     <Reference Include="Assembly-CSharp-firstpass" HintPath="$(MISTAKEN_REFERENCES)\Assembly-CSharp-firstpass.dll" />
     <Reference Include="Assembly-CSharp-Publicized" HintPath="$(MISTAKEN_REFERENCES)\Assembly-CSharp-Publicized.dll" />
     <Reference Include="UnityEngine" HintPath="$(MISTAKEN_REFERENCES)\UnityEngine.dll" />
@@ -56,7 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="GeneratorPatch.cs" />
     <Compile Include="PluginHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SNavHandler.cs" />

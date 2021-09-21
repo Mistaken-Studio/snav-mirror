@@ -26,15 +26,12 @@ namespace Mistaken.SNav
         public override PluginPriority Priority => PluginPriority.Medium;
 
         /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(2, 11, 0);
+        public override Version RequiredExiledVersion => new Version(3, 0, 0, 84);
 
         /// <inheritdoc/>
         public override void OnEnabled()
         {
             Instance = this;
-
-            this.harmony = new HarmonyLib.Harmony("com.mistaken.snav");
-            this.harmony.PatchAll();
 
             new SNavHandler(this);
 
@@ -46,15 +43,11 @@ namespace Mistaken.SNav
         /// <inheritdoc/>
         public override void OnDisabled()
         {
-            this.harmony.UnpatchAll();
-
             API.Diagnostics.Module.OnDisable(this);
 
             base.OnDisabled();
         }
 
         internal static PluginHandler Instance { get; private set; }
-
-        private HarmonyLib.Harmony harmony;
     }
 }
