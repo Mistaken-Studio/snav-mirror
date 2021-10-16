@@ -26,12 +26,15 @@ namespace Mistaken.SNav
         public override PluginPriority Priority => PluginPriority.Medium;
 
         /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(3, 0, 0, 84);
+        public override Version RequiredExiledVersion => new Version(3, 0, 3);
 
         /// <inheritdoc/>
         public override void OnEnabled()
         {
             Instance = this;
+
+            new SNavHandler.SNavClasicItem().TryRegister();
+            new SNavHandler.SNavUltimateItem().TryRegister();
 
             new SNavHandler(this);
 

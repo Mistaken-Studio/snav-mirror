@@ -11,11 +11,12 @@ using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
+using Exiled.API.Features.Spawn;
 using Exiled.CustomItems.API.EventArgs;
 using Exiled.CustomItems.API.Features;
-using Exiled.CustomItems.API.Spawn;
 using MEC;
 using Mistaken.API;
+using Mistaken.API.CustomItems;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.GUI;
 using Scp914;
@@ -26,11 +27,6 @@ namespace Mistaken.SNav
     /// <inheritdoc/>
     public class SNavHandler : Module
     {
-        /// <summary>
-        /// Enables Expereimental Feature.
-        /// </summary>
-        public static readonly bool HideTablet = false;
-
         /// <summary>
         /// Rooms looks.
         /// </summary>
@@ -680,19 +676,20 @@ namespace Mistaken.SNav
         /// </summary>
         /// <param name="room">Room.</param>
         /// <returns>Rotation.</returns>
-        public static Rotation GetRotateion(Room room)
+        public static Rotation GetRotation(Room room)
         {
-            if (room.transform.localEulerAngles.y == 0)
+            var y = Math.Round(room.transform.localEulerAngles.y);
+            if (y == 0)
                 return Rotation.RIGHT;
-            else if (room.transform.localEulerAngles.y == 90)
+            else if (y == 90)
                 return Rotation.DOWN;
-            else if (room.transform.localEulerAngles.y == 180)
+            else if (y == 180)
                 return Rotation.LEFT;
-            else if (room.transform.localEulerAngles.y == 270)
+            else if (y == 270)
                 return Rotation.UP;
             else
             {
-                Log.Error(room.transform.localEulerAngles.y);
+                Log.Error(y);
                 return (Rotation)(-99);
             }
         }
@@ -713,6 +710,7 @@ namespace Mistaken.SNav
                 case RoomType.EzStraight:
 
                 case RoomType.HczServers:
+                case RoomType.HczStraight:
                 case RoomType.Unknown:
 
                 case RoomType.LczAirlock:
@@ -720,9 +718,7 @@ namespace Mistaken.SNav
                 case RoomType.LczToilets:
                 case RoomType.LczStraight:
                     {
-                        var tmp = (Rotation)((int)GetRotateion(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD));
-                        if ((int)tmp > 3)
-                            tmp -= 4;
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.HS_LR;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -738,9 +734,7 @@ namespace Mistaken.SNav
 
                 case RoomType.LczCurve:
                     {
-                        var tmp = (Rotation)((int)GetRotateion(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD));
-                        if ((int)tmp > 3)
-                            tmp -= 4;
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
                         switch (tmp)
                         {
                             case Rotation.UP:
@@ -759,11 +753,11 @@ namespace Mistaken.SNav
                 case RoomType.HczTCross:
                 case RoomType.HczArmory:
 
+                case RoomType.EzTCross:
+
                 case RoomType.LczTCross:
                     {
-                        var tmp = (Rotation)((int)GetRotateion(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD));
-                        if ((int)tmp > 3)
-                            tmp -= 4;
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
                         switch (tmp)
                         {
                             case Rotation.UP:
@@ -805,9 +799,7 @@ namespace Mistaken.SNav
                 case RoomType.Lcz173:
                 case RoomType.Lcz012:
                     {
-                        var tmp = (Rotation)(((int)GetRotateion(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
-                        if ((int)tmp > 3)
-                            tmp -= 4;
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
                         switch (tmp)
                         {
                             case Rotation.UP:
@@ -828,7 +820,7 @@ namespace Mistaken.SNav
 
                 case RoomType.Hcz939:
                     {
-                        var tmp = (Rotation)((int)(GetRotateion(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.SCP_939_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -839,7 +831,7 @@ namespace Mistaken.SNav
 
                 case RoomType.HczEzCheckpoint:
                     {
-                        var tmp = (Rotation)((int)(GetRotateion(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.EZ_HCZ_CHECKPOINT_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -850,7 +842,7 @@ namespace Mistaken.SNav
 
                 case RoomType.HczNuke:
                     {
-                        var tmp = (Rotation)((int)(GetRotateion(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.NUKE_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -861,7 +853,7 @@ namespace Mistaken.SNav
 
                 case RoomType.Hcz049:
                     {
-                        var tmp = (Rotation)((int)(GetRotateion(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.SCP049_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -872,7 +864,7 @@ namespace Mistaken.SNav
 
                 case RoomType.HczHid:
                     {
-                        var tmp = (Rotation)((int)(GetRotateion(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.HID_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -884,7 +876,7 @@ namespace Mistaken.SNav
                 case RoomType.LczChkpA:
                 case RoomType.HczChkpA:
                     {
-                        var tmp = (Rotation)((int)(GetRotateion(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
                         switch (tmp)
                         {
                             case Rotation.UP:
@@ -903,7 +895,7 @@ namespace Mistaken.SNav
                 case RoomType.LczChkpB:
                 case RoomType.HczChkpB:
                     {
-                        var tmp = (Rotation)((int)(GetRotateion(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
                         switch (tmp)
                         {
                             case Rotation.UP:
@@ -921,7 +913,7 @@ namespace Mistaken.SNav
 
                 case RoomType.EzUpstairsPcs:
                     {
-                        var tmp = (Rotation)((int)(GetRotateion(room) + (int)offsetCheckpoint) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetCheckpoint) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.COMPUTERS_UPSTAIRS_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -932,9 +924,7 @@ namespace Mistaken.SNav
 
                 case RoomType.HczTesla:
                     {
-                        var tmp = (Rotation)((int)GetRotateion(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD));
-                        if ((int)tmp > 3)
-                            tmp -= 4;
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.TESLA_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -1054,13 +1044,13 @@ namespace Mistaken.SNav
         }
 
         /// <inheritdoc/>
-        public class SNavClasicItem : Exiled.CustomItems.API.Features.CustomItem
+        public class SNavClasicItem : MistakenCustomItem
         {
             /// <inheritdoc/>
             public override ItemType Type { get; set; } = ItemType.Radio;
 
             /// <inheritdoc/>
-            public override uint Id { get; set; } = 3000;
+            public override MistakenCustomItems CustomItem => MistakenCustomItems.SNAV_3000;
 
             /// <inheritdoc/>
             public override string Name { get; set; } = "SNav-3000";
@@ -1078,7 +1068,7 @@ namespace Mistaken.SNav
             public override Pickup Spawn(Vector3 position)
             {
                 var pickup = base.Spawn(position);
-                pickup.Scale = new Vector3(2.0f, .50f, .50f);
+                pickup.Scale = new Vector3(.50f, .50f, 2.0f);
                 return pickup;
             }
 
@@ -1086,16 +1076,13 @@ namespace Mistaken.SNav
             public override Pickup Spawn(Vector3 position, Item item)
             {
                 var pickup = base.Spawn(position, item);
-                pickup.Scale = new Vector3(2.0f, .50f, .50f);
+                pickup.Scale = new Vector3(.50f, .50f, 2.0f);
                 return pickup;
             }
 
             /// <inheritdoc/>
             protected override void ShowSelectedMessage(Player player)
             {
-                PseudoGUIHandler.Ignore(player);
-                RequireUpdate.Add(player);
-                UpdateInterface(player);
                 Instance.RunCoroutine(IUpdateInterface(player), "SNav.IUpdateInterface");
             }
 
@@ -1107,19 +1094,19 @@ namespace Mistaken.SNav
                 if (ev.KnobSetting == Scp914KnobSetting.Fine || ev.KnobSetting == Scp914KnobSetting.VeryFine)
                 {
                     ev.Item.DestroySelf();
-                    CustomItem.Get(4000).Spawn(ev.OutputPosition);
+                    Get(MistakenCustomItems.SNAV_ULTIMATE).Spawn(ev.OutputPosition);
                 }
             }
         }
 
         /// <inheritdoc/>
-        public class SNavUltimateItem : CustomItem
+        public class SNavUltimateItem : MistakenCustomItem
         {
             /// <inheritdoc/>
             public override ItemType Type { get; set; } = ItemType.Radio;
 
             /// <inheritdoc/>
-            public override uint Id { get; set; } = 4000;
+            public override MistakenCustomItems CustomItem => MistakenCustomItems.SNAV_ULTIMATE;
 
             /// <inheritdoc/>
             public override string Name { get; set; } = "SNav-Ultimate";
@@ -1137,7 +1124,7 @@ namespace Mistaken.SNav
             public override Pickup Spawn(Vector3 position)
             {
                 var pickup = base.Spawn(position);
-                pickup.Scale = new Vector3(2.5f, .75f, .75f);
+                pickup.Scale = new Vector3(.75f, .75f, 2.5f);
                 return pickup;
             }
 
@@ -1145,16 +1132,13 @@ namespace Mistaken.SNav
             public override Pickup Spawn(Vector3 position, Item item)
             {
                 var pickup = base.Spawn(position, item);
-                pickup.Scale = new Vector3(2.5f, .75f, .75f);
+                pickup.Scale = new Vector3(.75f, .75f, 2.5f);
                 return pickup;
             }
 
             /// <inheritdoc/>
             protected override void ShowSelectedMessage(Player player)
             {
-                PseudoGUIHandler.Ignore(player);
-                RequireUpdate.Add(player);
-                UpdateInterface(player);
                 Instance.RunCoroutine(IUpdateInterface(player), "SNav.IUpdateInterface");
             }
         }
@@ -1184,7 +1168,12 @@ namespace Mistaken.SNav
             int i = 1;
             var clasic = CustomItem.Get(3000);
             var utlimate = CustomItem.Get(4000);
+
+            PseudoGUIHandler.Ignore(player);
+            RequireUpdate.Add(player);
+
             yield return Timing.WaitForSeconds(0.1f);
+
             while (clasic.Check(player.CurrentItem) || utlimate.Check(player.CurrentItem))
             {
                 if (!LastRooms.TryGetValue(player, out Room lastRoom) || lastRoom != player.CurrentRoom)
@@ -1212,6 +1201,7 @@ namespace Mistaken.SNav
 
         private static void UpdateInterface(Player player)
         {
+            Log.Debug("A1", PluginHandler.Instance.Config.VerbouseOutput);
             var clasicItem = CustomItem.Get(3000);
             var utlimateItem = CustomItem.Get(4000);
             bool ultimate;
@@ -1221,6 +1211,7 @@ namespace Mistaken.SNav
                 ultimate = false;
             else
                 return;
+            Log.Debug("A2", PluginHandler.Instance.Config.VerbouseOutput);
             string[] toWrite;
             if (player.Position.y < -500 && player.Position.y > -700)
             {
@@ -1268,13 +1259,18 @@ __|  /‾‾‾‾|   '  |
                 }
             }
 
+            Log.Debug("A3", PluginHandler.Instance.Config.VerbouseOutput);
+
             var list = NorthwoodLib.Pools.ListPool<string>.Shared.Rent(toWrite);
             list.RemoveAll(i => string.IsNullOrWhiteSpace(i));
-            while (list.Count < 65)
+            while (list.Count < 30)
                 list.Insert(0, string.Empty);
-            player.ShowHint("<voffset=25em><color=green><size=25%><align=left><mspace=0.5em>" + string.Join("<br>", list) + "</mspace></align></size></color></voffset>", 11);
+            player.ShowHint("<color=green><size=40%><align=left><mspace=0.5em>" + string.Join("<br>", list) + "</mspace></align></size></color>", 11);
             NorthwoodLib.Pools.ListPool<string>.Shared.Return(list);
         }
+
+        private bool lastDecont;
+        private bool lastWarhead;
 
         private void Server_RoundStarted()
         {
@@ -1386,6 +1382,32 @@ __|  /‾‾‾‾|   '  |
                     }
                 }
 
+                var decont = MapPlus.IsLCZDecontaminated(45) && !MapPlus.IsLCZDecontaminated();
+                if (this.lastDecont != decont)
+                {
+                    this.lastDecont = decont;
+                    foreach (var player in RealPlayers.List.Where(p => p.IsAlive))
+                    {
+                        if (!MistakenCustomItem.TryGet(player, out CustomItem item))
+                            continue;
+                        if (item.Id == (int)MistakenCustomItems.SNAV_3000 || item.Id == (int)MistakenCustomItems.SNAV_ULTIMATE)
+                            RequireUpdate.Add(player);
+                    }
+                }
+
+                var warhead = Warhead.IsInProgress;
+                if (this.lastWarhead != warhead)
+                {
+                    this.lastWarhead = warhead;
+                    foreach (var player in RealPlayers.List.Where(p => p.IsAlive))
+                    {
+                        if (!MistakenCustomItem.TryGet(player, out CustomItem item))
+                            continue;
+                        if (item.Id == (int)MistakenCustomItems.SNAV_3000 || item.Id == (int)MistakenCustomItems.SNAV_ULTIMATE)
+                            RequireUpdate.Add(player);
+                    }
+                }
+
                 requireUpdateUltimate = true;
                 yield return Timing.WaitForSeconds(1);
                 requireUpdateUltimate = false;
@@ -1396,8 +1418,8 @@ __|  /‾‾‾‾|   '  |
         {
             try
             {
-                offsetClassD = GetRotateion(Map.Rooms.First(r => r.Type == RoomType.LczClassDSpawn));
-                offsetCheckpoint = (Rotation)(((int)GetRotateion(Map.Rooms.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)offsetClassD) % 4);
+                offsetClassD = GetRotation(Map.Rooms.First(r => r.Type == RoomType.LczClassDSpawn));
+                offsetCheckpoint = (Rotation)(((int)GetRotation(Map.Rooms.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)offsetClassD) % 4);
 
                 List<int> zAxis = new List<int>();
                 List<int> xAxis = new List<int>();
