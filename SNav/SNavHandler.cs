@@ -951,8 +951,6 @@ namespace Mistaken.SNav
         {
             Log = base.Log;
             Instance = this;
-            new SNavClasicItem();
-            new SNavUltimateItem();
         }
 
         /// <summary>
@@ -1032,15 +1030,15 @@ namespace Mistaken.SNav
         /// <inheritdoc/>
         public override void OnDisable()
         {
-            Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Handle(() => this.Server_WaitingForPlayers(), "WaitingForPlayers");
-            Exiled.Events.Handlers.Server.RoundStarted -= this.Handle(() => this.Server_RoundStarted(), "RoundStart");
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Server_WaitingForPlayers;
+            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
         }
 
         /// <inheritdoc/>
         public override void OnEnable()
         {
-            Exiled.Events.Handlers.Server.WaitingForPlayers += this.Handle(() => this.Server_WaitingForPlayers(), "WaitingForPlayers");
-            Exiled.Events.Handlers.Server.RoundStarted += this.Handle(() => this.Server_RoundStarted(), "RoundStart");
+            Exiled.Events.Handlers.Server.WaitingForPlayers += this.Server_WaitingForPlayers;
+            Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
         }
 
         /// <inheritdoc/>
@@ -1166,8 +1164,8 @@ namespace Mistaken.SNav
         private static IEnumerator<float> IUpdateInterface(Player player)
         {
             int i = 1;
-            var clasic = CustomItem.Get(3000);
-            var utlimate = CustomItem.Get(4000);
+            var clasic = MistakenCustomItems.SNAV_3000.Get();
+            var utlimate = MistakenCustomItems.SNAV_ULTIMATE.Get();
 
             PseudoGUIHandler.Ignore(player);
             RequireUpdate.Add(player);
@@ -1202,8 +1200,8 @@ namespace Mistaken.SNav
         private static void UpdateInterface(Player player)
         {
             Log.Debug("A1", PluginHandler.Instance.Config.VerbouseOutput);
-            var clasicItem = CustomItem.Get(3000);
-            var utlimateItem = CustomItem.Get(4000);
+            var clasicItem = MistakenCustomItems.SNAV_3000.Get();
+            var utlimateItem = MistakenCustomItems.SNAV_ULTIMATE.Get();
             bool ultimate;
             if (utlimateItem.Check(player.CurrentItem))
                 ultimate = true;
@@ -1296,7 +1294,7 @@ __|  /‾‾‾‾|   '  |
                     continue;
                 }
 
-                CustomItem.TrySpawn(4000, door.Base.transform.position + (door.Base.transform.forward * x) + (door.Base.transform.right * z) + (Vector3.up * y), out _);
+                MistakenCustomItems.SNAV_ULTIMATE.TrySpawn(door.Base.transform.position + (door.Base.transform.forward * x) + (door.Base.transform.right * z) + (Vector3.up * y), out _);
                 yield return Timing.WaitForSeconds(0.1f);
             }
 
@@ -1316,7 +1314,7 @@ __|  /‾‾‾‾|   '  |
                     continue;
                 }
 
-                CustomItem.TrySpawn(3000, door.Base.transform.position + (door.Base.transform.forward * x) + (door.Base.transform.right * z) + (Vector3.up * y), out _);
+                MistakenCustomItems.SNAV_3000.TrySpawn(door.Base.transform.position + (door.Base.transform.forward * x) + (door.Base.transform.right * z) + (Vector3.up * y), out _);
                 yield return Timing.WaitForSeconds(0.1f);
             }
 
