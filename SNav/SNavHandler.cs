@@ -1193,12 +1193,16 @@ namespace Mistaken.SNav
                 yield return Timing.WaitForSeconds(0.5f);
             }
 
-            player.ShowHint(string.Empty, 1); // Clear Hints
+            if (player.IsConnected)
+                player.ShowHint(string.Empty, 1); // Clear Hints
             PseudoGUIHandler.StopIgnore(player);
         }
 
         private static void UpdateInterface(Player player)
         {
+            if (!player.IsConnected)
+                return;
+
             Log.Debug("A1", PluginHandler.Instance.Config.VerbouseOutput);
             var clasicItem = MistakenCustomItems.SNAV_3000.Get();
             var utlimateItem = MistakenCustomItems.SNAV_ULTIMATE.Get();
