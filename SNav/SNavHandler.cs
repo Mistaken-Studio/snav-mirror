@@ -19,6 +19,7 @@ using Mistaken.API;
 using Mistaken.API.CustomItems;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.GUI;
+using Mistaken.API.Utilities;
 using Scp914;
 using UnityEngine;
 
@@ -397,17 +398,7 @@ namespace Mistaken.SNav
         /// <summary>
         /// Rooms where someone was on last scan.
         /// </summary>
-        public static readonly HashSet<Room> LastScan = new HashSet<Room>();
-
-        /// <summary>
-        /// Gets rooms in LCZ.
-        /// </summary>
-        public static Room[,] LCZRooms { get; private set; } = new Room[0, 0];
-
-        /// <summary>
-        /// Gets rooms in EZ and HCZ.
-        /// </summary>
-        public static Room[,] EZ_HCZRooms { get; private set; } = new Room[0, 0];
+        public static readonly HashSet<Exiled.API.Features.Room> LastScan = new HashSet<Exiled.API.Features.Room>();
 
         /// <summary>
         /// Generates Surface map.
@@ -477,9 +468,9 @@ namespace Mistaken.SNav
         /// <param name="currentRoom">Room to be highlithed on white.</param>
         /// <param name="ultimate">If <see langword="true"/> then map will contain SNavUltimate elements.</param>
         /// <returns>EZ and HCZ Map.</returns>
-        public static string[] GenerateEZ_HCZSNav(Room currentRoom, bool ultimate = false)
+        public static string[] GenerateEZ_HCZSNav(Exiled.API.Features.Room currentRoom, bool ultimate = false)
         {
-            var rooms = EZ_HCZRooms;
+            var rooms = API.Utilities.Room.EZ_HCZ;
             string[] toWrite = new string[rooms.GetLength(0) * 3];
             for (int z = 0; z < rooms.GetLength(0); z++)
             {
@@ -488,7 +479,7 @@ namespace Mistaken.SNav
                     string color = "green";
                     string name = "  END  ";
                     var room = rooms[z, x];
-                    var tmp = GetRoomString(GetRoomType(room));
+                    var tmp = GetRoomString(GetRoomType(room.ExiledRoom));
                     if (room == null)
                     {
                         toWrite[(z * 3) + 0] += tmp[0];
@@ -497,25 +488,26 @@ namespace Mistaken.SNav
                         continue;
                     }
 
-                    if (currentRoom == room)
+                    var roomType = room.ExiledRoom.Type;
+                    if (currentRoom == room.ExiledRoom)
                         color = "white";
                     else if (Warhead.IsInProgress)
                     {
-                        if (room.Type == RoomType.HczNuke || room.Type == RoomType.EzGateA || room.Type == RoomType.EzGateB || room.Type == RoomType.LczChkpA || room.Type == RoomType.LczChkpB)
+                        if (roomType == RoomType.HczNuke || roomType == RoomType.EzGateA || roomType == RoomType.EzGateB || roomType == RoomType.LczChkpA || roomType == RoomType.LczChkpB)
                             color = "red";
                     }
                     else if (MapPlus.IsLCZDecontaminated(35))
                     {
-                        if (room.Type == RoomType.LczChkpA || room.Type == RoomType.LczChkpB)
+                        if (roomType == RoomType.LczChkpA || roomType == RoomType.LczChkpB)
                             color = "red";
                     }
 
                     if (ultimate)
                     {
-                        if (LastScan.Contains(room) && currentRoom != room)
+                        if (LastScan.Contains(room.ExiledRoom) && currentRoom != room.ExiledRoom)
                             color = "red";
 
-                        switch (room.Type)
+                        switch (roomType)
                         {
                             case RoomType.EzGateA:
                                 name = "GATE  A";
@@ -568,9 +560,9 @@ namespace Mistaken.SNav
         /// <param name="currentRoom">Room to be highlithed on white.</param>
         /// <param name="ultimate">If <see langword="true"/> then map will contain SNavUltimate elements.</param>
         /// <returns>LCZ Map.</returns>
-        public static string[] GenerateLCZSNav(Room currentRoom, bool ultimate = false)
+        public static string[] GenerateLCZSNav(Exiled.API.Features.Room currentRoom, bool ultimate = false)
         {
-            var rooms = LCZRooms;
+            var rooms = API.Utilities.Room.LCZ;
             string[] toWrite = new string[rooms.GetLength(0) * 3];
             for (int z = 0; z < rooms.GetLength(0); z++)
             {
@@ -579,7 +571,7 @@ namespace Mistaken.SNav
                     string color = "green";
                     string name = "  END  ";
                     var room = rooms[z, x];
-                    var tmp = GetRoomString(GetRoomType(room));
+                    var tmp = GetRoomString(GetRoomType(room.ExiledRoom));
                     if (room == null)
                     {
                         toWrite[(z * 3) + 0] += tmp[0];
@@ -588,25 +580,26 @@ namespace Mistaken.SNav
                         continue;
                     }
 
-                    if (currentRoom == room)
+                    var roomType = room.ExiledRoom.Type;
+                    if (currentRoom == room.ExiledRoom)
                         color = "white";
                     else if (Warhead.IsInProgress)
                     {
-                        if (room.Type == RoomType.HczNuke || room.Type == RoomType.EzGateA || room.Type == RoomType.EzGateB || room.Type == RoomType.LczChkpA || room.Type == RoomType.LczChkpB)
+                        if (roomType == RoomType.HczNuke || roomType == RoomType.EzGateA || roomType == RoomType.EzGateB || roomType == RoomType.LczChkpA || roomType == RoomType.LczChkpB)
                             color = "red";
                     }
                     else if (MapPlus.IsLCZDecontaminated(35))
                     {
-                        if (room.Type == RoomType.LczChkpA || room.Type == RoomType.LczChkpB)
+                        if (roomType == RoomType.LczChkpA || roomType == RoomType.LczChkpB)
                             color = "red";
                     }
 
                     if (ultimate)
                     {
-                        if (LastScan.Contains(room) && currentRoom != room)
+                        if (LastScan.Contains(room.ExiledRoom) && currentRoom != room.ExiledRoom)
                             color = "red";
 
-                        switch (room.Type)
+                        switch (roomType)
                         {
                             case RoomType.EzGateA:
                                 name = "GATE  A";
@@ -654,29 +647,11 @@ namespace Mistaken.SNav
         }
 
         /// <summary>
-        /// Returns rooms based on <paramref name="pos"/>.
-        /// </summary>
-        /// <param name="pos">Position.</param>
-        /// <returns>Rooms.</returns>
-        public static Room[,] GetRooms(float pos)
-        {
-            switch (pos)
-            {
-                case float x when x < -900 && x > -1100:
-                    return EZ_HCZRooms;
-                case float x when x < 100 && x > -100:
-                    return LCZRooms;
-                default:
-                    return new Room[0, 0];
-            }
-        }
-
-        /// <summary>
         /// Returns room rotation.
         /// </summary>
         /// <param name="room">Room.</param>
         /// <returns>Rotation.</returns>
-        public static Rotation GetRotation(Room room)
+        public static Rotation GetRotation(Exiled.API.Features.Room room)
         {
             var y = Math.Round(room.transform.localEulerAngles.y);
             if (y == 0)
@@ -699,7 +674,7 @@ namespace Mistaken.SNav
         /// </summary>
         /// <param name="room">Room.</param>
         /// <returns>Room type.</returns>
-        public static SNavRoomType GetRoomType(Room room)
+        public static SNavRoomType GetRoomType(Exiled.API.Features.Room room)
         {
             switch (room?.Type)
             {
@@ -1142,7 +1117,7 @@ namespace Mistaken.SNav
         }
 
         private static readonly HashSet<Player> RequireUpdate = new HashSet<Player>();
-        private static readonly Dictionary<Player, Room> LastRooms = new Dictionary<Player, Room>();
+        private static readonly Dictionary<Player, Exiled.API.Features.Room> LastRooms = new Dictionary<Player, Exiled.API.Features.Room>();
 
         private static Rotation offsetClassD = Rotation.UP;
         private static Rotation offsetCheckpoint = Rotation.UP;
@@ -1174,7 +1149,7 @@ namespace Mistaken.SNav
 
             while (clasic.Check(player.CurrentItem) || utlimate.Check(player.CurrentItem))
             {
-                if (!LastRooms.TryGetValue(player, out Room lastRoom) || lastRoom != player.CurrentRoom)
+                if (!LastRooms.TryGetValue(player, out Exiled.API.Features.Room lastRoom) || lastRoom != player.CurrentRoom)
                 {
                     LastRooms[player] = player.CurrentRoom;
                     RequireUpdate.Add(player);
@@ -1291,7 +1266,7 @@ __|  /‾‾‾‾|   '  |
                     continue;
                 }
 
-                var door = Map.Doors.FirstOrDefault(i => i.Type.ToString() == data[0]);
+                var door = Exiled.API.Features.Map.Doors.FirstOrDefault(i => i.Type.ToString() == data[0]);
                 if (door == null)
                 {
                     Log.Warn("Invalid Data, Unknown Door \"data[0]\"");
@@ -1311,7 +1286,7 @@ __|  /‾‾‾‾|   '  |
                     continue;
                 }
 
-                var door = Map.Doors.FirstOrDefault(i => i.Type.ToString() == data[0]);
+                var door = Exiled.API.Features.Map.Doors.FirstOrDefault(i => i.Type.ToString() == data[0]);
                 if (door == null)
                 {
                     Log.Warn($"Invalid Data, Unknown Door \"{data[0]}\"");
@@ -1418,181 +1393,8 @@ __|  /‾‾‾‾|   '  |
 
         private void Server_WaitingForPlayers()
         {
-            try
-            {
-                offsetClassD = GetRotation(Map.Rooms.First(r => r.Type == RoomType.LczClassDSpawn));
-                offsetCheckpoint = (Rotation)(((int)GetRotation(Map.Rooms.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)offsetClassD) % 4);
-
-                List<int> zAxis = new List<int>();
-                List<int> xAxis = new List<int>();
-                try
-                {
-                    foreach (var item in Map.Rooms.Where(r => r.Zone == ZoneType.LightContainment))
-                    {
-                        int z = (int)Math.Floor(item.Position.z);
-                        int x = (int)Math.Floor(item.Position.x);
-                        if (!zAxis.Contains(z))
-                            zAxis.Add(z);
-                        if (!xAxis.Contains(x))
-                            xAxis.Add(x);
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Log.Error("CatchId: 3");
-                    Log.Error(ex.Message);
-                    Log.Error(ex.StackTrace);
-                }
-
-                xAxis.Sort();
-                zAxis.Sort();
-                zAxis.Reverse();
-                try
-                {
-                    LCZRooms = new Room[zAxis.Count, xAxis.Count];
-                    for (int i = 0; i < zAxis.Count; i++)
-                    {
-                        try
-                        {
-                            var z = zAxis[i];
-                            List<Room> roomsList = new List<Room>();
-                            for (int j = 0; j < xAxis.Count; j++)
-                            {
-                                try
-                                {
-                                    var x = xAxis[j];
-                                    LCZRooms[i, j] = Map.Rooms.Where(r => r.Zone == ZoneType.LightContainment).FirstOrDefault(p => (int)Math.Floor(p.Position.z) == z && (int)Math.Floor(p.Position.x) == x);
-                                }
-                                catch (System.Exception ex)
-                                {
-                                    Log.Error("CatchId: 4.2");
-                                    Log.Error(ex.Message);
-                                    Log.Error(ex.StackTrace);
-                                }
-                            }
-                        }
-                        catch (System.Exception ex)
-                        {
-                            Log.Error("CatchId: 4.1");
-                            Log.Error(ex.Message);
-                            Log.Error(ex.StackTrace);
-                        }
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Log.Error("CatchId: 4");
-                    Log.Error(ex.Message);
-                    Log.Error(ex.StackTrace);
-                }
-
-                zAxis.Clear();
-                xAxis.Clear();
-                try
-                {
-                    foreach (var item in Map.Rooms.Where(r => (r.Zone == ZoneType.HeavyContainment || r.Zone == ZoneType.Entrance) && r.Type != RoomType.Pocket))
-                    {
-                        try
-                        {
-                            int z = (int)Math.Floor(item.Position.z);
-                            int x = (int)Math.Floor(item.Position.x);
-                            if (!zAxis.Contains(z))
-                                zAxis.Add(z);
-                            if (!xAxis.Contains(x))
-                                xAxis.Add(x);
-                        }
-                        catch (System.Exception ex)
-                        {
-                            Log.Error("CatchId: 5.1");
-                            Log.Error(ex.Message);
-                            Log.Error(ex.StackTrace);
-                        }
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Log.Error("CatchId: 5");
-                    Log.Error(ex.Message);
-                    Log.Error(ex.StackTrace);
-                }
-
-                xAxis.Sort();
-                zAxis.Sort();
-                try
-                {
-                    for (int i = 0; i < xAxis.Count; i++)
-                    {
-                        try
-                        {
-                            var x = xAxis[i];
-                            if (!Map.Rooms.Where(r => (r.Zone == ZoneType.HeavyContainment || r.Zone == ZoneType.Entrance) && r.Type != RoomType.Pocket).Any(p => (int)Math.Floor(p.Position.x) == x))
-                            {
-                                xAxis.RemoveAt(i);
-                                i--;
-                            }
-                        }
-                        catch (System.Exception ex)
-                        {
-                            Log.Error("CatchId: 6.1");
-                            Log.Error(ex.Message);
-                            Log.Error(ex.StackTrace);
-                        }
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Log.Error("CatchId: 6");
-                    Log.Error(ex.Message);
-                    Log.Error(ex.StackTrace);
-                }
-
-                zAxis.Reverse();
-                EZ_HCZRooms = new Room[zAxis.Count, xAxis.Count];
-                try
-                {
-                    for (int i = 0; i < zAxis.Count; i++)
-                    {
-                        try
-                        {
-                            var z = zAxis[i];
-                            List<Room> roomsList = new List<Room>();
-                            for (int j = 0; j < xAxis.Count; j++)
-                            {
-                                try
-                                {
-                                    var x = xAxis[j];
-                                    EZ_HCZRooms[i, j] = Map.Rooms.Where(r => (r.Zone == ZoneType.HeavyContainment || r.Zone == ZoneType.Entrance) && r.Type != RoomType.Pocket).FirstOrDefault(p => (int)Math.Floor(p.Position.z) == z && (int)Math.Floor(p.Position.x) == x);
-                                }
-                                catch (System.Exception ex)
-                                {
-                                    Log.Error("CatchId: 7.2");
-                                    Log.Error(ex.Message);
-                                    Log.Error(ex.StackTrace);
-                                }
-                            }
-                        }
-                        catch (System.Exception ex)
-                        {
-                            Log.Error("CatchId: 7.1");
-                            Log.Error(ex.Message);
-                            Log.Error(ex.StackTrace);
-                        }
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Log.Error("CatchId: 7");
-                    Log.Error(ex.Message);
-                    Log.Error(ex.StackTrace);
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Log.Error("CatchId: 0");
-                Log.Error(ex.Message);
-                Log.Error(ex.StackTrace);
-                this.CallDelayed(5, this.Server_WaitingForPlayers, "Retry.Server_WaitingForPlayers");
-            }
+            offsetClassD = GetRotation(Exiled.API.Features.Map.Rooms.First(r => r.Type == RoomType.LczClassDSpawn));
+            offsetCheckpoint = (Rotation)(((int)GetRotation(Exiled.API.Features.Map.Rooms.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)offsetClassD) % 4);
         }
     }
 }
