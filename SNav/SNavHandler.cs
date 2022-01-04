@@ -479,7 +479,7 @@ namespace Mistaken.SNav
                     string color = "green";
                     string name = "  END  ";
                     var room = rooms[z, x];
-                    var tmp = GetRoomString(GetRoomType(room.ExiledRoom));
+                    var tmp = GetRoomString(GetRoomType(room?.ExiledRoom));
                     if (room == null)
                     {
                         toWrite[(z * 3) + 0] += tmp[0];
@@ -571,7 +571,7 @@ namespace Mistaken.SNav
                     string color = "green";
                     string name = "  END  ";
                     var room = rooms[z, x];
-                    var tmp = GetRoomString(GetRoomType(room.ExiledRoom));
+                    var tmp = GetRoomString(GetRoomType(room?.ExiledRoom));
                     if (room == null)
                     {
                         toWrite[(z * 3) + 0] += tmp[0];
