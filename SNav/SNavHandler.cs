@@ -10,6 +10,7 @@ using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Attributes;
 using Exiled.API.Features.Items;
 using Exiled.API.Features.Spawn;
 using Exiled.CustomItems.API.EventArgs;
@@ -1003,20 +1004,21 @@ namespace Mistaken.SNav
         public override string Name => "SNavHandler";
 
         /// <inheritdoc/>
-        public override void OnDisable()
-        {
-            Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Server_WaitingForPlayers;
-            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
-        }
-
-        /// <inheritdoc/>
         public override void OnEnable()
         {
-            Exiled.Events.Handlers.Server.WaitingForPlayers += this.Server_WaitingForPlayers;
+            Events.Handlers.CustomEvents.GeneratedCache += this.CustomEvents_GeneratedCache;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
         }
 
         /// <inheritdoc/>
+        public override void OnDisable()
+        {
+            Events.Handlers.CustomEvents.GeneratedCache -= this.CustomEvents_GeneratedCache;
+            Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
+        }
+
+        /// <inheritdoc/>
+        [CustomItem(ItemType.Radio)]
         public class SNavClasicItem : MistakenCustomItem
         {
             /// <inheritdoc/>
@@ -1073,6 +1075,7 @@ namespace Mistaken.SNav
         }
 
         /// <inheritdoc/>
+        [CustomItem(ItemType.Radio)]
         public class SNavUltimateItem : MistakenCustomItem
         {
             /// <inheritdoc/>
@@ -1254,6 +1257,12 @@ __|  /‾‾‾‾|   '  |
             this.RunCoroutine(this.DoRoundLoop(), "DoRoundLoop");
         }
 
+        private void CustomEvents_GeneratedCache()
+        {
+            offsetClassD = GetRotation(Exiled.API.Features.Room.List.First(r => r.Type == RoomType.LczClassDSpawn));
+            offsetCheckpoint = (Rotation)(((int)GetRotation(Exiled.API.Features.Room.List.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)offsetClassD) % 4);
+        }
+
         private IEnumerator<float> DoRoundLoop()
         {
             yield return Timing.WaitForSeconds(1);
@@ -1266,7 +1275,7 @@ __|  /‾‾‾‾|   '  |
                     continue;
                 }
 
-                var door = Exiled.API.Features.Map.Doors.FirstOrDefault(i => i.Type.ToString() == data[0]);
+                var door = Door.List.FirstOrDefault(i => i.Type.ToString() == data[0]);
                 if (door == null)
                 {
                     Log.Warn("Invalid Data, Unknown Door \"data[0]\"");
@@ -1286,7 +1295,7 @@ __|  /‾‾‾‾|   '  |
                     continue;
                 }
 
-                var door = Exiled.API.Features.Map.Doors.FirstOrDefault(i => i.Type.ToString() == data[0]);
+                var door = Door.List.FirstOrDefault(i => i.Type.ToString() == data[0]);
                 if (door == null)
                 {
                     Log.Warn($"Invalid Data, Unknown Door \"{data[0]}\"");
@@ -1389,12 +1398,6 @@ __|  /‾‾‾‾|   '  |
                 yield return Timing.WaitForSeconds(1);
                 requireUpdateUltimate = false;
             }
-        }
-
-        private void Server_WaitingForPlayers()
-        {
-            offsetClassD = GetRotation(Exiled.API.Features.Map.Rooms.First(r => r.Type == RoomType.LczClassDSpawn));
-            offsetCheckpoint = (Rotation)(((int)GetRotation(Exiled.API.Features.Map.Rooms.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)offsetClassD) % 4);
         }
     }
 }
