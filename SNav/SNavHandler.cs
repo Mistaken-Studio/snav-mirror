@@ -1006,14 +1006,14 @@ namespace Mistaken.SNav
         /// <inheritdoc/>
         public override void OnEnable()
         {
-            Events.Handlers.CustomEvents.GeneratedCache += this.CustomEvents_GeneratedCache;
+            Exiled.Events.Handlers.Server.WaitingForPlayers += this.Server_WaitingForPlayers;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
         }
 
         /// <inheritdoc/>
         public override void OnDisable()
         {
-            Events.Handlers.CustomEvents.GeneratedCache -= this.CustomEvents_GeneratedCache;
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Server_WaitingForPlayers;
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
         }
 
@@ -1040,17 +1040,17 @@ namespace Mistaken.SNav
             public override SpawnProperties SpawnProperties { get; set; }
 
             /// <inheritdoc/>
-            public override Pickup Spawn(Vector3 position)
+            public override Pickup Spawn(Vector3 position, Player previousOwner = null)
             {
-                var pickup = base.Spawn(position);
+                var pickup = base.Spawn(position, previousOwner);
                 pickup.Scale = new Vector3(.50f, .50f, 2.0f);
                 return pickup;
             }
 
             /// <inheritdoc/>
-            public override Pickup Spawn(Vector3 position, Item item)
+            public override Pickup Spawn(Vector3 position, Item item, Player previousOwner = null)
             {
-                var pickup = base.Spawn(position, item);
+                var pickup = base.Spawn(position, item, previousOwner);
                 pickup.Scale = new Vector3(.50f, .50f, 2.0f);
                 return pickup;
             }
@@ -1069,7 +1069,7 @@ namespace Mistaken.SNav
                 if (ev.KnobSetting == Scp914KnobSetting.Fine || ev.KnobSetting == Scp914KnobSetting.VeryFine)
                 {
                     ev.Item.DestroySelf();
-                    Get(MistakenCustomItems.SNAV_ULTIMATE).Spawn(ev.OutputPosition);
+                    Get(MistakenCustomItems.SNAV_ULTIMATE).Spawn(ev.OutputPosition, previousOwner: null);
                 }
             }
         }
@@ -1097,17 +1097,17 @@ namespace Mistaken.SNav
             public override SpawnProperties SpawnProperties { get; set; }
 
             /// <inheritdoc/>
-            public override Pickup Spawn(Vector3 position)
+            public override Pickup Spawn(Vector3 position, Player previousOwner = null)
             {
-                var pickup = base.Spawn(position);
+                var pickup = base.Spawn(position, previousOwner);
                 pickup.Scale = new Vector3(.75f, .75f, 2.5f);
                 return pickup;
             }
 
             /// <inheritdoc/>
-            public override Pickup Spawn(Vector3 position, Item item)
+            public override Pickup Spawn(Vector3 position, Item item, Player previousOwner = null)
             {
-                var pickup = base.Spawn(position, item);
+                var pickup = base.Spawn(position, item, previousOwner);
                 pickup.Scale = new Vector3(.75f, .75f, 2.5f);
                 return pickup;
             }
@@ -1257,7 +1257,7 @@ __|  /‾‾‾‾|   '  |
             this.RunCoroutine(this.DoRoundLoop(), "DoRoundLoop");
         }
 
-        private void CustomEvents_GeneratedCache()
+        private void Server_WaitingForPlayers()
         {
             offsetClassD = GetRotation(Exiled.API.Features.Room.List.First(r => r.Type == RoomType.LczClassDSpawn));
             offsetCheckpoint = (Rotation)(((int)GetRotation(Exiled.API.Features.Room.List.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)offsetClassD) % 4);
