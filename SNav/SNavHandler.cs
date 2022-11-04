@@ -1016,6 +1016,17 @@ namespace Mistaken.SNav
             public override SpawnProperties SpawnProperties { get; set; }
 
             /// <inheritdoc/>
+            public override void Give(Player player, bool displayMessage = true)
+            {
+                var item = this.CreateCorrectItem(player.Inventory.CreateItemInstance(this.Type, updateViewmodel: true));
+                var radio = item.Base.PickupDropModel as InventorySystem.Items.Radio.RadioPickup;
+                radio.SavedEnabled = true;
+                radio.SavedBattery = 1f;
+                radio.SavedRange = 1;
+                this.Give(player, item, displayMessage);
+            }
+
+            /// <inheritdoc/>
             public override Pickup Spawn(Vector3 position, Player previousOwner = null)
             {
                 var pickup = base.Spawn(position, previousOwner);
@@ -1072,6 +1083,17 @@ namespace Mistaken.SNav
 
             /// <inheritdoc/>
             public override SpawnProperties SpawnProperties { get; set; }
+
+            /// <inheritdoc/>
+            public override void Give(Player player, bool displayMessage = true)
+            {
+                var item = this.CreateCorrectItem(player.Inventory.CreateItemInstance(this.Type, updateViewmodel: true));
+                var radio = item.Base.PickupDropModel as InventorySystem.Items.Radio.RadioPickup;
+                radio.SavedEnabled = true;
+                radio.SavedBattery = 1f;
+                radio.SavedRange = 1;
+                this.Give(player, item, displayMessage);
+            }
 
             /// <inheritdoc/>
             public override Pickup Spawn(Vector3 position, Player previousOwner = null)
