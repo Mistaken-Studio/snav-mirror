@@ -1245,13 +1245,18 @@ __|  /‾‾‾‾|   '  |
             if (ev.Item.Type != ItemType.Radio)
                 return;
 
+            if (CustomItem.Registered.Any(x => x.Check(ev.Item)))
+                return;
+
             switch (UnityEngine.Random.Range(1, 101))
             {
                 case int i when i < 33:
                     MistakenCustomItem.Get(MistakenCustomItems.SNAV_3000).Spawn(ev.OutputPosition, previousOwner: null);
                     break;
+
                 case int i when i < 66:
                     break;
+
                 default:
                     return;
             }
