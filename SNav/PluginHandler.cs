@@ -7,28 +7,28 @@
 using System;
 using Exiled.API.Enums;
 using Exiled.API.Features;
+using Mistaken.Updater.API.Config;
 
 namespace Mistaken.SNav
 {
-    /// <inheritdoc/>
-    public class PluginHandler : Plugin<Config>
+    internal sealed class PluginHandler : Plugin<Config>, IAutoUpdateablePlugin
     {
-        /// <inheritdoc/>
         public override string Author => "Mistaken Devs";
 
-        /// <inheritdoc/>
         public override string Name => "SNav";
 
-        /// <inheritdoc/>
         public override string Prefix => "MSNAV";
 
-        /// <inheritdoc/>
         public override PluginPriority Priority => PluginPriority.Medium;
 
-        /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(5, 2, 2);
+        public override Version RequiredExiledVersion => new(5, 2, 2);
 
-        /// <inheritdoc/>
+        public AutoUpdateConfig AutoUpdateConfig => new()
+        {
+            Type = SourceType.GITLAB,
+            Url = "https://git.mistaken.pl/api/v4/projects/15",
+        };
+
         public override void OnEnabled()
         {
             Instance = this;
@@ -40,7 +40,6 @@ namespace Mistaken.SNav
             base.OnEnabled();
         }
 
-        /// <inheritdoc/>
         public override void OnDisabled()
         {
             API.Diagnostics.Module.OnDisable(this);

@@ -14,3 +14,9 @@ dotnet_diagnostic.SA1520.severity = none
 
 # SA1118: Parameter should not span multiple lines
 dotnet_diagnostic.SA1118.severity = suggestion
+
+# SA1000: Keywords should be spaced correctly
+dotnet_diagnostic.SA1000.severity = silent
+
+# SA1309: Field names should not begin with underscore
+dotnet_diagnostic.SA1309.severity = silent

@@ -8,11 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
-using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Attributes;
 using Exiled.API.Features.Items;
 using Exiled.API.Features.Spawn;
+using Exiled.API.Interfaces;
 using Exiled.CustomItems.API.EventArgs;
 using Exiled.CustomItems.API.Features;
 using MEC;
@@ -20,19 +20,18 @@ using Mistaken.API;
 using Mistaken.API.CustomItems;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.GUI;
-using Mistaken.API.Utilities;
 using Scp914;
 using UnityEngine;
 
 namespace Mistaken.SNav
 {
     /// <inheritdoc/>
-    public class SNavHandler : Module
+    public sealed class SNavHandler : Module
     {
         /// <summary>
         /// Rooms looks.
         /// </summary>
-        public static readonly Dictionary<SNavRoomType, string[]> Presets = new Dictionary<SNavRoomType, string[]>()
+        public static readonly Dictionary<SNavRoomType, string[]> Presets = new()
         {
             {
                 SNavRoomType.ERROR,
@@ -399,7 +398,7 @@ namespace Mistaken.SNav
         /// <summary>
         /// Rooms where someone was on last scan.
         /// </summary>
-        public static readonly HashSet<Exiled.API.Features.Room> LastScan = new HashSet<Exiled.API.Features.Room>();
+        public static readonly HashSet<Room> LastScan = new();
 
         /// <summary>
         /// Generates Surface map.
@@ -439,13 +438,13 @@ namespace Mistaken.SNav
 ";
             if (ultimate)
             {
-                tmp = tmp.Replace("gatea_color", surfaceScanGateA ? "red" : "green");
-                tmp = tmp.Replace("gateahole_color", surfaceScanGateAHole ? "red" : "green");
-                tmp = tmp.Replace("nuke_color", surfaceScanNuke ? "red" : "green");
-                tmp = tmp.Replace("gateb_color", surfaceScanGateB ? "red" : "green");
-                tmp = tmp.Replace("helipad_color", surfaceScanHelipad ? "red" : "green");
-                tmp = tmp.Replace("escape_color", surfaceScanEscape ? "red" : "green");
-                tmp = tmp.Replace("cassieroom_color", surfaceScanCassieRoom ? "red" : "green");
+                tmp = tmp.Replace("gatea_color", _surfaceScanGateA ? "red" : "green");
+                tmp = tmp.Replace("gateahole_color", _surfaceScanGateAHole ? "red" : "green");
+                tmp = tmp.Replace("nuke_color", _surfaceScanNuke ? "red" : "green");
+                tmp = tmp.Replace("gateb_color", _surfaceScanGateB ? "red" : "green");
+                tmp = tmp.Replace("helipad_color", _surfaceScanHelipad ? "red" : "green");
+                tmp = tmp.Replace("escape_color", _surfaceScanEscape ? "red" : "green");
+                tmp = tmp.Replace("cassieroom_color", _surfaceScanCassieRoom ? "red" : "green");
 
                 return tmp.Split('\n');
             }
@@ -469,7 +468,7 @@ namespace Mistaken.SNav
         /// <param name="currentRoom">Room to be highlithed on white.</param>
         /// <param name="ultimate">If <see langword="true"/> then map will contain SNavUltimate elements.</param>
         /// <returns>EZ and HCZ Map.</returns>
-        public static string[] GenerateEZ_HCZSNav(Exiled.API.Features.Room currentRoom, bool ultimate = false)
+        public static string[] GenerateEZ_HCZSNav(Room currentRoom, bool ultimate = false)
         {
             var rooms = API.Utilities.Room.EZ_HCZ;
             string[] toWrite = new string[rooms.GetLength(0) * 3];
@@ -561,7 +560,7 @@ namespace Mistaken.SNav
         /// <param name="currentRoom">Room to be highlithed on white.</param>
         /// <param name="ultimate">If <see langword="true"/> then map will contain SNavUltimate elements.</param>
         /// <returns>LCZ Map.</returns>
-        public static string[] GenerateLCZSNav(Exiled.API.Features.Room currentRoom, bool ultimate = false)
+        public static string[] GenerateLCZSNav(Room currentRoom, bool ultimate = false)
         {
             var rooms = API.Utilities.Room.LCZ;
             string[] toWrite = new string[rooms.GetLength(0) * 3];
@@ -652,7 +651,7 @@ namespace Mistaken.SNav
         /// </summary>
         /// <param name="room">Room.</param>
         /// <returns>Rotation.</returns>
-        public static Rotation GetRotation(Exiled.API.Features.Room room)
+        public static Rotation GetRotation(Room room)
         {
             var y = Math.Round(room.transform.localEulerAngles.y);
             if (y == 0)
@@ -675,7 +674,7 @@ namespace Mistaken.SNav
         /// </summary>
         /// <param name="room">Room.</param>
         /// <returns>Room type.</returns>
-        public static SNavRoomType GetRoomType(Exiled.API.Features.Room room)
+        public static SNavRoomType GetRoomType(Room room)
         {
             switch (room?.Type)
             {
@@ -694,7 +693,7 @@ namespace Mistaken.SNav
                 case RoomType.LczToilets:
                 case RoomType.LczStraight:
                     {
-                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)_offsetCheckpoint : (int)_offsetClassD)) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.HS_LR;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -710,20 +709,15 @@ namespace Mistaken.SNav
 
                 case RoomType.LczCurve:
                     {
-                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
-                        switch (tmp)
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)_offsetCheckpoint : (int)_offsetClassD)) % 4);
+                        return tmp switch
                         {
-                            case Rotation.UP:
-                                return SNavRoomType.HC_LT;
-                            case Rotation.RIGHT:
-                                return SNavRoomType.HC_RT;
-                            case Rotation.DOWN:
-                                return SNavRoomType.HC_RB;
-                            case Rotation.LEFT:
-                                return SNavRoomType.HC_LB;
-                            default:
-                                return SNavRoomType.ERROR;
-                        }
+                            Rotation.UP => SNavRoomType.HC_LT,
+                            Rotation.RIGHT => SNavRoomType.HC_RT,
+                            Rotation.DOWN => SNavRoomType.HC_RB,
+                            Rotation.LEFT => SNavRoomType.HC_LB,
+                            _ => SNavRoomType.ERROR,
+                        };
                     }
 
                 case RoomType.HczTCross:
@@ -733,20 +727,15 @@ namespace Mistaken.SNav
 
                 case RoomType.LczTCross:
                     {
-                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
-                        switch (tmp)
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)_offsetCheckpoint : (int)_offsetClassD)) % 4);
+                        return tmp switch
                         {
-                            case Rotation.UP:
-                                return SNavRoomType.IT_TB_R;
-                            case Rotation.RIGHT:
-                                return SNavRoomType.IT_RL_B;
-                            case Rotation.DOWN:
-                                return SNavRoomType.IT_TB_L;
-                            case Rotation.LEFT:
-                                return SNavRoomType.IT_RL_T;
-                            default:
-                                return SNavRoomType.ERROR;
-                        }
+                            Rotation.UP => SNavRoomType.IT_TB_R,
+                            Rotation.RIGHT => SNavRoomType.IT_RL_B,
+                            Rotation.DOWN => SNavRoomType.IT_TB_L,
+                            Rotation.LEFT => SNavRoomType.IT_RL_T,
+                            _ => SNavRoomType.ERROR,
+                        };
                     }
 
                 case RoomType.EzCrossing:
@@ -775,20 +764,15 @@ namespace Mistaken.SNav
                 case RoomType.Lcz173:
                 case RoomType.Lcz012:
                     {
-                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
-                        switch (tmp)
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)_offsetCheckpoint : (int)_offsetClassD)) % 4);
+                        return tmp switch
                         {
-                            case Rotation.UP:
-                                return SNavRoomType.END_R;
-                            case Rotation.RIGHT:
-                                return SNavRoomType.END_B;
-                            case Rotation.DOWN:
-                                return SNavRoomType.END_L;
-                            case Rotation.LEFT:
-                                return SNavRoomType.END_T;
-                            default:
-                                return SNavRoomType.ERROR;
-                        }
+                            Rotation.UP => SNavRoomType.END_R,
+                            Rotation.RIGHT => SNavRoomType.END_B,
+                            Rotation.DOWN => SNavRoomType.END_L,
+                            Rotation.LEFT => SNavRoomType.END_T,
+                            _ => SNavRoomType.ERROR,
+                        };
                     }
 
                 case RoomType.LczClassDSpawn:
@@ -796,7 +780,7 @@ namespace Mistaken.SNav
 
                 case RoomType.Hcz939:
                     {
-                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)_offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.SCP_939_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -807,7 +791,7 @@ namespace Mistaken.SNav
 
                 case RoomType.HczEzCheckpoint:
                     {
-                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)_offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.EZ_HCZ_CHECKPOINT_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -818,7 +802,7 @@ namespace Mistaken.SNav
 
                 case RoomType.HczNuke:
                     {
-                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)_offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.NUKE_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -829,7 +813,7 @@ namespace Mistaken.SNav
 
                 case RoomType.Hcz049:
                     {
-                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)_offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.SCP049_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -840,7 +824,7 @@ namespace Mistaken.SNav
 
                 case RoomType.HczHid:
                     {
-                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)_offsetClassD) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.HID_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -852,44 +836,34 @@ namespace Mistaken.SNav
                 case RoomType.LczChkpA:
                 case RoomType.HczChkpA:
                     {
-                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
-                        switch (tmp)
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)_offsetClassD) % 4);
+                        return tmp switch
                         {
-                            case Rotation.UP:
-                                return SNavRoomType.LCZ_A_L;
-                            case Rotation.RIGHT:
-                                return SNavRoomType.LCZ_A_B;
-                            case Rotation.DOWN:
-                                return SNavRoomType.LCZ_A_R;
-                            case Rotation.LEFT:
-                                return SNavRoomType.LCZ_A_T;
-                            default:
-                                return SNavRoomType.ERROR;
-                        }
+                            Rotation.UP => SNavRoomType.LCZ_A_L,
+                            Rotation.RIGHT => SNavRoomType.LCZ_A_B,
+                            Rotation.DOWN => SNavRoomType.LCZ_A_R,
+                            Rotation.LEFT => SNavRoomType.LCZ_A_T,
+                            _ => SNavRoomType.ERROR,
+                        };
                     }
 
                 case RoomType.LczChkpB:
                 case RoomType.HczChkpB:
                     {
-                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetClassD) % 4);
-                        switch (tmp)
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)_offsetClassD) % 4);
+                        return tmp switch
                         {
-                            case Rotation.UP:
-                                return SNavRoomType.LCZ_B_L;
-                            case Rotation.RIGHT:
-                                return SNavRoomType.LCZ_B_B;
-                            case Rotation.DOWN:
-                                return SNavRoomType.LCZ_B_R;
-                            case Rotation.LEFT:
-                                return SNavRoomType.LCZ_B_T;
-                            default:
-                                return SNavRoomType.ERROR;
-                        }
+                            Rotation.UP => SNavRoomType.LCZ_B_L,
+                            Rotation.RIGHT => SNavRoomType.LCZ_B_B,
+                            Rotation.DOWN => SNavRoomType.LCZ_B_R,
+                            Rotation.LEFT => SNavRoomType.LCZ_B_T,
+                            _ => SNavRoomType.ERROR,
+                        };
                     }
 
                 case RoomType.EzUpstairsPcs:
                     {
-                        var tmp = (Rotation)((int)(GetRotation(room) + (int)offsetCheckpoint) % 4);
+                        var tmp = (Rotation)((int)(GetRotation(room) + (int)_offsetCheckpoint) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.COMPUTERS_UPSTAIRS_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -900,7 +874,7 @@ namespace Mistaken.SNav
 
                 case RoomType.HczTesla:
                     {
-                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)offsetCheckpoint : (int)offsetClassD)) % 4);
+                        var tmp = (Rotation)(((int)GetRotation(room) + (room.Zone == ZoneType.Entrance ? (int)_offsetCheckpoint : (int)_offsetClassD)) % 4);
                         if (tmp == Rotation.UP || tmp == Rotation.DOWN)
                             return SNavRoomType.TESLA_RL;
                         else if (tmp == Rotation.RIGHT || tmp == Rotation.LEFT)
@@ -921,8 +895,8 @@ namespace Mistaken.SNav
         /// <returns>Preset.</returns>
         public static string[] GetRoomString(SNavRoomType type) => Presets[type];
 
-        /// <inheritdoc cref="Module.Module(Exiled.API.Interfaces.IPlugin{Exiled.API.Interfaces.IConfig})"/>
-        public SNavHandler(PluginHandler p)
+        /// <inheritdoc cref="Module(IPlugin{IConfig})"/>
+        public SNavHandler(IPlugin<IConfig> p)
             : base(p)
         {
             Log = base.Log;
@@ -1001,13 +975,14 @@ namespace Mistaken.SNav
         }
 
         /// <inheritdoc/>
-        public override string Name => "SNavHandler";
+        public override string Name => nameof(SNavHandler);
 
         /// <inheritdoc/>
         public override void OnEnable()
         {
             Exiled.Events.Handlers.Server.WaitingForPlayers += this.Server_WaitingForPlayers;
             Exiled.Events.Handlers.Server.RoundStarted += this.Server_RoundStarted;
+            Exiled.Events.Handlers.Scp914.UpgradingItem += this.Scp914_UpgradingItem;
         }
 
         /// <inheritdoc/>
@@ -1015,11 +990,12 @@ namespace Mistaken.SNav
         {
             Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Server_WaitingForPlayers;
             Exiled.Events.Handlers.Server.RoundStarted -= this.Server_RoundStarted;
+            Exiled.Events.Handlers.Scp914.UpgradingItem -= this.Scp914_UpgradingItem;
         }
 
         /// <inheritdoc/>
         [CustomItem(ItemType.Radio)]
-        public class SNavClasicItem : MistakenCustomItem
+        public sealed class SNavClasicItem : MistakenCustomItem
         {
             /// <inheritdoc/>
             public override ItemType Type { get; set; } = ItemType.Radio;
@@ -1066,6 +1042,7 @@ namespace Mistaken.SNav
             {
                 if (!ev.IsAllowed)
                     return;
+
                 if (ev.KnobSetting == Scp914KnobSetting.Fine || ev.KnobSetting == Scp914KnobSetting.VeryFine)
                 {
                     ev.Item.DestroySelf();
@@ -1076,7 +1053,7 @@ namespace Mistaken.SNav
 
         /// <inheritdoc/>
         [CustomItem(ItemType.Radio)]
-        public class SNavUltimateItem : MistakenCustomItem
+        public sealed class SNavUltimateItem : MistakenCustomItem
         {
             /// <inheritdoc/>
             public override ItemType Type { get; set; } = ItemType.Radio;
@@ -1119,21 +1096,21 @@ namespace Mistaken.SNav
             }
         }
 
-        private static readonly HashSet<Player> RequireUpdate = new HashSet<Player>();
-        private static readonly Dictionary<Player, Exiled.API.Features.Room> LastRooms = new Dictionary<Player, Exiled.API.Features.Room>();
+        private static readonly HashSet<Player> _requireUpdate = new();
+        private static readonly Dictionary<Player, Room> _lastRooms = new();
 
-        private static Rotation offsetClassD = Rotation.UP;
-        private static Rotation offsetCheckpoint = Rotation.UP;
+        private static Rotation _offsetClassD = Rotation.UP;
+        private static Rotation _offsetCheckpoint = Rotation.UP;
 
-        private static bool requireUpdateUltimate = false;
+        private static bool _requireUpdateUltimate = false;
 
-        private static bool surfaceScanGateA = false;
-        private static bool surfaceScanGateAHole = false;
-        private static bool surfaceScanNuke = false;
-        private static bool surfaceScanGateB = false;
-        private static bool surfaceScanHelipad = false;
-        private static bool surfaceScanEscape = false;
-        private static bool surfaceScanCassieRoom = false;
+        private static bool _surfaceScanGateA = false;
+        private static bool _surfaceScanGateAHole = false;
+        private static bool _surfaceScanNuke = false;
+        private static bool _surfaceScanGateB = false;
+        private static bool _surfaceScanHelipad = false;
+        private static bool _surfaceScanEscape = false;
+        private static bool _surfaceScanCassieRoom = false;
 
         private static new ModuleLogger Log { get; set; }
 
@@ -1146,23 +1123,23 @@ namespace Mistaken.SNav
             var utlimate = MistakenCustomItems.SNAV_ULTIMATE.Get();
 
             PseudoGUIHandler.Ignore(player);
-            RequireUpdate.Add(player);
+            _requireUpdate.Add(player);
 
             yield return Timing.WaitForSeconds(0.1f);
 
             while (clasic.Check(player.CurrentItem) || utlimate.Check(player.CurrentItem))
             {
-                if (!LastRooms.TryGetValue(player, out Exiled.API.Features.Room lastRoom) || lastRoom != player.CurrentRoom)
+                if (!_lastRooms.TryGetValue(player, out Room lastRoom) || lastRoom != player.CurrentRoom)
                 {
-                    LastRooms[player] = player.CurrentRoom;
-                    RequireUpdate.Add(player);
+                    _lastRooms[player] = player.CurrentRoom;
+                    _requireUpdate.Add(player);
                     i = 20;
                 }
 
-                if (i >= 19 || RequireUpdate.Contains(player) || (requireUpdateUltimate && utlimate.Check(player.CurrentItem)))
+                if (i >= 19 || _requireUpdate.Contains(player) || (_requireUpdateUltimate && utlimate.Check(player.CurrentItem)))
                 {
                     UpdateInterface(player);
-                    RequireUpdate.Remove(player);
+                    _requireUpdate.Remove(player);
                     i = 0;
                 }
                 else
@@ -1181,7 +1158,7 @@ namespace Mistaken.SNav
             if (!player.IsConnected)
                 return;
 
-            Log.Debug("A1", PluginHandler.Instance.Config.VerbouseOutput);
+            Log.Debug("A1", PluginHandler.Instance.Config.VerboseOutput);
             var clasicItem = MistakenCustomItems.SNAV_3000.Get();
             var utlimateItem = MistakenCustomItems.SNAV_ULTIMATE.Get();
             bool ultimate;
@@ -1191,7 +1168,7 @@ namespace Mistaken.SNav
                 ultimate = false;
             else
                 return;
-            Log.Debug("A2", PluginHandler.Instance.Config.VerbouseOutput);
+            Log.Debug("A2", PluginHandler.Instance.Config.VerboseOutput);
             string[] toWrite;
             if (player.Position.y < -500 && player.Position.y > -700)
             {
@@ -1225,21 +1202,15 @@ __|  /‾‾‾‾|   '  |
             }
             else
             {
-                switch (player.CurrentRoom.Position.y)
+                toWrite = player.CurrentRoom.Position.y switch
                 {
-                    case float x when x > -100 && x < 100:
-                        toWrite = GenerateLCZSNav(player.CurrentRoom, ultimate);
-                        break;
-                    case float x when x > -1100 && x < -900:
-                        toWrite = GenerateEZ_HCZSNav(player.CurrentRoom, ultimate);
-                        break;
-                    default:
-                        toWrite = new string[] { "ERROR, UNKNOWN ROOM: " + player.CurrentRoom.Position.y };
-                        break;
-                }
+                    float x when x > -100 && x < 100 => GenerateLCZSNav(player.CurrentRoom, ultimate),
+                    float x when x > -1100 && x < -900 => GenerateEZ_HCZSNav(player.CurrentRoom, ultimate),
+                    _ => new string[] { "ERROR, UNKNOWN ROOM: " + player.CurrentRoom.Position.y },
+                };
             }
 
-            Log.Debug("A3", PluginHandler.Instance.Config.VerbouseOutput);
+            Log.Debug("A3", PluginHandler.Instance.Config.VerboseOutput);
 
             var list = NorthwoodLib.Pools.ListPool<string>.Shared.Rent(toWrite);
             list.RemoveAll(i => string.IsNullOrWhiteSpace(i));
@@ -1249,8 +1220,8 @@ __|  /‾‾‾‾|   '  |
             NorthwoodLib.Pools.ListPool<string>.Shared.Return(list);
         }
 
-        private bool lastDecont;
-        private bool lastWarhead;
+        private bool _lastDecont;
+        private bool _lastWarhead;
 
         private void Server_RoundStarted()
         {
@@ -1259,8 +1230,38 @@ __|  /‾‾‾‾|   '  |
 
         private void Server_WaitingForPlayers()
         {
-            offsetClassD = GetRotation(Exiled.API.Features.Room.List.First(r => r.Type == RoomType.LczClassDSpawn));
-            offsetCheckpoint = (Rotation)(((int)GetRotation(Exiled.API.Features.Room.List.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)offsetClassD) % 4);
+            _offsetClassD = GetRotation(Room.List.First(r => r.Type == RoomType.LczClassDSpawn));
+            _offsetCheckpoint = (Rotation)(((int)GetRotation(Room.List.First(r => r.Type == RoomType.HczEzCheckpoint)) + (int)_offsetClassD) % 4);
+        }
+
+        private void Scp914_UpgradingItem(Exiled.Events.EventArgs.UpgradingItemEventArgs ev)
+        {
+            if (!ev.IsAllowed)
+                return;
+
+            if (ev.KnobSetting != Scp914KnobSetting.Fine)
+                return;
+
+            if (ev.Item.Type != ItemType.Radio)
+                return;
+
+            if (CustomItem.Registered.Any(x => x.Check(ev.Item)))
+                return;
+
+            switch (UnityEngine.Random.Range(1, 101))
+            {
+                case int i when i < 33:
+                    MistakenCustomItem.Get(MistakenCustomItems.SNAV_3000).Spawn(ev.OutputPosition, previousOwner: null);
+                    break;
+
+                case int i when i < 66:
+                    break;
+
+                default:
+                    return;
+            }
+
+            ev.Item.Destroy();
         }
 
         private IEnumerator<float> DoRoundLoop()
@@ -1312,12 +1313,12 @@ __|  /‾‾‾‾|   '  |
             {
                 yield return Timing.WaitForSeconds(15);
                 LastScan.Clear();
-                surfaceScanGateA = false;
-                surfaceScanGateAHole = false;
-                surfaceScanNuke = false;
-                surfaceScanGateB = false;
-                surfaceScanHelipad = false;
-                surfaceScanEscape = false;
+                _surfaceScanGateA = false;
+                _surfaceScanGateAHole = false;
+                _surfaceScanNuke = false;
+                _surfaceScanGateB = false;
+                _surfaceScanHelipad = false;
+                _surfaceScanEscape = false;
                 foreach (var player in RealPlayers.List.Where(p => p.IsAlive))
                 {
                     if (player.CurrentRoom != null)
@@ -1329,74 +1330,74 @@ __|  /‾‾‾‾|   '  |
                         {
                             if (player.Position.z >= -44)
                             {
-                                surfaceScanEscape = true;
+                                _surfaceScanEscape = true;
                                 continue;
                             }
                             else if (player.Position.z <= -73)
                             {
-                                surfaceScanCassieRoom = true;
+                                _surfaceScanCassieRoom = true;
                                 continue;
                             }
                         }
 
                         if (player.Position.x >= 148)
                         {
-                            surfaceScanHelipad = true;
+                            _surfaceScanHelipad = true;
                             continue;
                         }
 
                         if (player.Position.x >= 68)
                         {
-                            surfaceScanGateB = true;
+                            _surfaceScanGateB = true;
                             continue;
                         }
 
                         if (player.Position.x <= 42 && player.Position.x >= 37 && player.Position.z <= -32 && player.Position.z >= -38)
                         {
-                            surfaceScanNuke = true;
+                            _surfaceScanNuke = true;
                             continue;
                         }
 
                         if (player.Position.z >= -21)
                         {
-                            surfaceScanGateA = true;
+                            _surfaceScanGateA = true;
                             continue;
                         }
 
-                        surfaceScanGateAHole = true;
+                        _surfaceScanGateAHole = true;
                         continue;
                     }
                 }
 
                 var decont = MapPlus.IsLCZDecontaminated(45) && !MapPlus.IsLCZDecontaminated();
-                if (this.lastDecont != decont)
+                if (this._lastDecont != decont)
                 {
-                    this.lastDecont = decont;
+                    this._lastDecont = decont;
                     foreach (var player in RealPlayers.List.Where(p => p.IsAlive))
                     {
                         if (!MistakenCustomItem.TryGet(player, out CustomItem item))
                             continue;
                         if (item.Id == (int)MistakenCustomItems.SNAV_3000 || item.Id == (int)MistakenCustomItems.SNAV_ULTIMATE)
-                            RequireUpdate.Add(player);
+                            _requireUpdate.Add(player);
                     }
                 }
 
                 var warhead = Warhead.IsInProgress;
-                if (this.lastWarhead != warhead)
+                if (this._lastWarhead != warhead)
                 {
-                    this.lastWarhead = warhead;
+                    this._lastWarhead = warhead;
                     foreach (var player in RealPlayers.List.Where(p => p.IsAlive))
                     {
                         if (!MistakenCustomItem.TryGet(player, out CustomItem item))
                             continue;
                         if (item.Id == (int)MistakenCustomItems.SNAV_3000 || item.Id == (int)MistakenCustomItems.SNAV_ULTIMATE)
-                            RequireUpdate.Add(player);
+                            _requireUpdate.Add(player);
                     }
                 }
 
-                requireUpdateUltimate = true;
+                _requireUpdateUltimate = true;
                 yield return Timing.WaitForSeconds(1);
-                requireUpdateUltimate = false;
+                _requireUpdateUltimate = false;
             }
         }
     }
