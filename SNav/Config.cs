@@ -5,37 +5,19 @@
 // -----------------------------------------------------------------------
 
 using System.ComponentModel;
-using Mistaken.Updater.Config;
+using Exiled.API.Interfaces;
 
 namespace Mistaken.SNav
 {
-    /// <inheritdoc/>
-    public class Config : IAutoUpdatableConfig
+    internal sealed class Config : IConfig
     {
-        /// <inheritdoc/>
         public bool IsEnabled { get; set; } = true;
 
-        /// <summary>
-        /// Gets or sets a value indicating whether debugs should be displayed.
-        /// </summary>
         [Description("If true then debugs will be displayed")]
-        public bool VerbouseOutput { get; set; }
+        public bool VerboseOutput { get; set; }
 
-        /// <inheritdoc/>
-        [Description("Auto Update Settings")]
-        public System.Collections.Generic.Dictionary<string, string> AutoUpdateConfig { get; set; } = new System.Collections.Generic.Dictionary<string, string>
-        {
-            { "Url", "https://git.mistaken.pl/api/v4/projects/15" },
-            { "Token", string.Empty },
-            { "Type", "GITLAB" },
-            { "VerbouseOutput", "false" },
-        };
-
-        /// <summary>
-        /// Gets or sets SNav 3000 Spawns.
-        /// </summary>
         [Description("Spawn points for SNav 3000 (Room, OffsetX, OffsetY, OffsetZ)")]
-        public string[] SNav3000Spawns { get; set; } = new string[]
+        public string[] SNav3000Spawns { get; set; } = new[]
         {
             "Scp079Second, 4, 2, 8.4",
             "NukeSurface, 5.5, 2, -3",
@@ -45,11 +27,8 @@ namespace Mistaken.SNav
             "LczArmory, 6, 2, 1.5",
         };
 
-        /// <summary>
-        /// Gets or sets SNav Ultimate Spawns.
-        /// </summary>
         [Description("Spawn points for SNav Ultimate (Room, OffsetX, OffsetY, OffsetZ)")]
-        public string[] SNavUltimateSpawns { get; set; } = new string[]
+        public string[] SNavUltimateSpawns { get; set; } = new[]
         {
             "Scp079Second, 4.5, 2, 8.4",
         };
